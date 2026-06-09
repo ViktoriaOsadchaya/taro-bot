@@ -1,0 +1,47 @@
+# Локальная инфраструктура для разработки Taro Bot
+#
+# Запуск: docker compose up -d
+# Остановка: docker compose down
+# Логи: docker compose logs -f postgres|redis
+
+services:
+  # PostgreSQL — основное хранилище пользователей, раскладов и справочника карт.
+  postgres:
+    image: postgres:16-alpine
+    container_name: taro_bot_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: taro_bot
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d taro_bot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # Redis — активные сессии раскладов (FSM бота), кэш; AOF сохраняет данные при перезапуске.
+  redis:
+    image: redis:7-alpine
+    container_name: taro_bot_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  postgres_data:
+  redis_data:
