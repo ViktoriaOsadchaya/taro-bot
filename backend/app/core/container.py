@@ -20,9 +20,9 @@ from app.core.db_helper import db_helper
 from app.core.redis_helper import redis_helper
 from app.infrastructure.llm_client import LlmClientProvider
 from app.infrastructure.reading_session_store import ReadingSessionStoreProvider
-from app.repositories.reading_repository import ReadingRepoProvider
-from app.repositories.tarot_card_repository import TarotCardRepoProvider
-from app.repositories.user_repository import UserRepoProvider
+from app.repositories.reading_repository import ReadingRepository, reading_repository
+from app.repositories.tarot_card_repository import TarotCardRepository, tarot_card_repository
+from app.repositories.user_repository import UserRepository, user_repository
 
 
 class DbProvider(Provider):
@@ -55,12 +55,28 @@ class RedisProvider(Provider):
         return redis_helper.client
 
 
+class RepositoriesProvider(Provider):
+    """Предоставляет singleton-репозитории на scope одного запроса."""
+
+    scope = Scope.REQUEST
+
+    @provide
+    def user_repository(self) -> UserRepository:
+        return user_repository
+
+    @provide
+    def tarot_card_repository(self) -> TarotCardRepository:
+        return tarot_card_repository
+
+    @provide
+    def reading_repository(self) -> ReadingRepository:
+        return reading_repository
+
+
 ALL_PROVIDERS: list[Provider] = [
     DbProvider(),
     RedisProvider(),
-    UserRepoProvider(),
-    TarotCardRepoProvider(),
-    ReadingRepoProvider(),
+    RepositoriesProvider(),
     ReadingSessionStoreProvider(),
     LlmClientProvider(),
     UserServiceProvider(),

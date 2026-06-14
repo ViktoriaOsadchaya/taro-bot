@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import pytest
 
-from app.api.deps.bot_auth import verify_internal_token
+from app.api.access_control import verify_internal_token
 from app.core.config import settings
 from app.core.exceptions import UnauthorizedException
 from tests.unit.base import UnitTestCase
 
 
-class TestBotAuth(UnitTestCase):
+class TestAccessControl(UnitTestCase):
     @pytest.mark.asyncio
     async def test_verify_internal_token_accepts_secret_key(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(settings, "SECRET_KEY", "test-secret")

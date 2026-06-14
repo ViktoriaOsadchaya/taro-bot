@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import Annotated
 
 from dishka.integrations.fastapi import DishkaRoute, FromDishka
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 
-from app.api.deps.bot_auth import get_telegram_id, verify_internal_token
+from app.api.access_control import TELEGRAM_ID, VERIFY_INTERNAL_TOKEN
 from app.api.schemas.common_dto import MessageDTO
 from app.api.schemas.reading_session_dto import (
     DrawCardResultDTO,
@@ -18,14 +18,14 @@ router = APIRouter(
     prefix="/readings/sessions",
     tags=["reading-sessions"],
     route_class=DishkaRoute,
-    dependencies=[Depends(verify_internal_token)],
+    dependencies=[VERIFY_INTERNAL_TOKEN],
 )
 
 
 @router.post("", response_model=ReadingSessionDTO)
 async def create_reading_session(
     body: StartSessionDTO,
-    telegram_id: Annotated[int, Depends(get_telegram_id)],
+    telegram_id: Annotated[int, TELEGRAM_ID],
     service: FromDishka[ReadingSessionService],
 ) -> ReadingSessionDTO:
     """
@@ -44,7 +44,7 @@ async def create_reading_session(
 
 @router.get("/current", response_model=ReadingSessionDTO)
 async def get_current_reading_session(
-    telegram_id: Annotated[int, Depends(get_telegram_id)],
+    telegram_id: Annotated[int, TELEGRAM_ID],
     service: FromDishka[ReadingSessionService],
 ) -> ReadingSessionDTO:
     """
@@ -62,7 +62,7 @@ async def get_current_reading_session(
 
 @router.delete("/current", response_model=MessageDTO)
 async def delete_current_reading_session(
-    telegram_id: Annotated[int, Depends(get_telegram_id)],
+    telegram_id: Annotated[int, TELEGRAM_ID],
     service: FromDishka[ReadingSessionService],
 ) -> MessageDTO:
     """
@@ -81,7 +81,7 @@ async def delete_current_reading_session(
 
 @router.post("/draw", response_model=DrawCardResultDTO)
 async def draw_reading_card(
-    telegram_id: Annotated[int, Depends(get_telegram_id)],
+    telegram_id: Annotated[int, TELEGRAM_ID],
     service: FromDishka[ReadingSessionService],
 ) -> DrawCardResultDTO:
     """

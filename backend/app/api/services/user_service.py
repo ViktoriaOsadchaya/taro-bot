@@ -33,7 +33,7 @@ class UserService:
 
     async def get_by_telegram_id(self, telegram_id: int) -> UserReadDTO:
         """Возвращает пользователя по Telegram ID или 404."""
-        user = await self.user_repo.get_by_telegram_id(self.session, telegram_id)
+        user = await self.user_repo.find_by_field(self.session, "telegram_id", telegram_id)
         if user is None:
             raise NotFoundException("Пользователь не найден")
         return UserReadDTO.model_validate(user)

@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import Annotated
 
 from dishka.integrations.fastapi import DishkaRoute, FromDishka
-from fastapi import APIRouter, Depends, Path, Query
+from fastapi import APIRouter, Path, Query
 
-from app.api.deps.bot_auth import get_telegram_id, verify_internal_token
+from app.api.access_control import TELEGRAM_ID, VERIFY_INTERNAL_TOKEN
 from app.api.schemas.reading_dto import ReadingDetailDTO, ReadingHistoryDTO
 from app.api.services.reading_service import ReadingService
 from app.api.services.user_service import UserService
@@ -14,13 +14,13 @@ router = APIRouter(
     prefix="/readings",
     tags=["readings"],
     route_class=DishkaRoute,
-    dependencies=[Depends(verify_internal_token)],
+    dependencies=[VERIFY_INTERNAL_TOKEN],
 )
 
 
 @router.get("", response_model=ReadingHistoryDTO)
 async def list_readings(
-    telegram_id: Annotated[int, Depends(get_telegram_id)],
+    telegram_id: Annotated[int, TELEGRAM_ID],
     user_service: FromDishka[UserService],
     reading_service: FromDishka[ReadingService],
     skip: Annotated[int, Query(ge=0)] = 0,
@@ -45,7 +45,7 @@ async def list_readings(
 @router.get("/{reading_id}", response_model=ReadingDetailDTO)
 async def get_reading(
     reading_id: Annotated[int, Path(ge=1)],
-    telegram_id: Annotated[int, Depends(get_telegram_id)],
+    telegram_id: Annotated[int, TELEGRAM_ID],
     user_service: FromDishka[UserService],
     reading_service: FromDishka[ReadingService],
 ) -> ReadingDetailDTO:

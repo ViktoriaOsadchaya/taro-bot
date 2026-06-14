@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from dishka.integrations.fastapi import DishkaRoute, FromDishka
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 
-from app.api.deps.bot_auth import verify_internal_token
+from app.api.access_control import VERIFY_INTERNAL_TOKEN
 from app.api.schemas.user_dto import UserReadDTO, UserUpsertDTO
 from app.api.services.user_service import UserService
 
@@ -11,7 +11,7 @@ router = APIRouter(
     prefix="/users",
     tags=["users"],
     route_class=DishkaRoute,
-    dependencies=[Depends(verify_internal_token)],
+    dependencies=[VERIFY_INTERNAL_TOKEN],
 )
 
 

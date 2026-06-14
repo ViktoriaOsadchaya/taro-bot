@@ -1,12 +1,12 @@
 """
-Зависимости аутентификации для внутреннего API бота.
+Контроль доступа к внутреннему API бота.
 
 Бот передаёт X-Internal-Token (SECRET_KEY или BOT_TOKEN) и X-Telegram-Id пользователя.
 """
 
 from typing import Annotated
 
-from fastapi import Header
+from fastapi import Depends, Header
 
 from app.core.config import settings
 from app.core.exceptions import UnauthorizedException
@@ -44,3 +44,7 @@ async def get_telegram_id(
     Обязателен для endpoints, привязанных к сессии или истории раскладов.
     """
     return x_telegram_id
+
+
+VERIFY_INTERNAL_TOKEN = Depends(verify_internal_token)
+TELEGRAM_ID = Depends(get_telegram_id)

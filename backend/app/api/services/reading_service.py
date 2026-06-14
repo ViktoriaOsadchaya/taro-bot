@@ -38,21 +38,23 @@ class ReadingService:
         limit: int = 20,
     ) -> ReadingHistoryDTO:
         """Возвращает пагинированную историю завершённых раскладов пользователя."""
-        readings, total = await self.reading_repo.get_completed_by_user_paginated(
+        readings, total = await self.reading_repo.get_paginated(
             self.session,
-            user_id=user_id,
             skip=skip,
             limit=limit,
+            order_by="created_at",
+            order_desc=True,
+            filters={"user_id": user_id, "status": ReadingStatus.COMPLETED},
+            relations=["cards"],
         )
         items = [self._to_history_item(reading) for reading in readings]
         return ReadingHistoryDTO(items=items, total=total, skip=skip, limit=limit)
 
     async def get_detail(self, user_id: int, reading_id: int) -> ReadingDetailDTO:
         """Возвращает полный расклад, если он принадлежит пользователю."""
-        reading = await self.reading_repo.get_by_id_for_user(
+        reading = await self.reading_repo.find_by_conditions(
             self.session,
-            reading_id=reading_id,
-            user_id=user_id,
+            {"primary_key": reading_id, "user_id": user_id},
         )
         if reading is None:
             raise NotFoundException("Расклад не найден")
@@ -71,15 +73,6 @@ class ReadingService:
 
         ***drawn_cards: финальный список из Redis-сессии***
         """
-        cards_kwargs = [
-            {
-                "tarot_card_id": card.tarot_card_id,
-                "position_index": card.position_index,
-                "position_key": card.position_key,
-                "is_reversed": card.is_reversed,
-            }
-            for card in drawn_cards
-        ]
         reading = await self.reading_repo.create_with_cards(
             self.session,
             reading_kwargs={
@@ -91,12 +84,7 @@ class ReadingService:
                 "llm_model": settings.llm.model,
                 "completed_at": datetime.now(UTC),
             },
-            cards_kwargs=cards_kwargs,
-        )
-        # Перезагружаем с tarot_card для DTO.
-        reading = await self.reading_repo.get_by_id_with_cards(
-            self.session,
-            reading.primary_key,
+            cards_kwargs=self._cards_kwargs(drawn_cards),
         )
         return self._to_detail(reading)
 
@@ -108,15 +96,6 @@ class ReadingService:
         drawn_cards: list[DrawnCardSessionDTO],
     ) -> None:
         """Сохраняет неудачный расклад без толкования (не попадает в /history)."""
-        cards_kwargs = [
-            {
-                "tarot_card_id": card.tarot_card_id,
-                "position_index": card.position_index,
-                "position_key": card.position_key,
-                "is_reversed": card.is_reversed,
-            }
-            for card in drawn_cards
-        ]
         await self.reading_repo.create_with_cards(
             self.session,
             reading_kwargs={
@@ -128,8 +107,20 @@ class ReadingService:
                 "llm_model": settings.llm.model,
                 "completed_at": datetime.now(UTC),
             },
-            cards_kwargs=cards_kwargs,
+            cards_kwargs=self._cards_kwargs(drawn_cards),
         )
+
+    def _cards_kwargs(self, drawn_cards: list[DrawnCardSessionDTO]) -> list[dict]:
+        """Преобразует карты сессии в kwargs для ReadingCard."""
+        return [
+            {
+                "tarot_card_id": card.tarot_card_id,
+                "position_index": card.position_index,
+                "position_key": card.position_key,
+                "is_reversed": card.is_reversed,
+            }
+            for card in drawn_cards
+        ]
 
     def _to_history_item(self, reading) -> ReadingHistoryItemDTO:
         """Преобразует ORM Reading в краткую запись истории."""

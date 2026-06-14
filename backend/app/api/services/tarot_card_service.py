@@ -21,9 +21,14 @@ class TarotCardService:
         self.session = session
         self.tarot_card_repo = tarot_card_repo
 
-    async def list_all(self) -> list[TarotCardReadDTO]:
-        """Возвращает полную колоду (78 карт) для WebApp и админки."""
-        cards = await self.tarot_card_repo.get_all_ordered(self.session)
+    async def list_all(self, skip: int = 0, limit: int = 100) -> list[TarotCardReadDTO]:
+        """Возвращает колоду (78 карт) с пагинацией, отсортированную по code."""
+        cards, _ = await self.tarot_card_repo.get_paginated(
+            self.session,
+            skip=skip,
+            limit=limit,
+            order_by="code",
+        )
         return [TarotCardReadDTO.model_validate(card) for card in cards]
 
     async def draw_random(

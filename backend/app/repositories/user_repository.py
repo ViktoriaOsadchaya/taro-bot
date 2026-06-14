@@ -1,4 +1,3 @@
-from dishka import Provider, Scope, provide
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
@@ -16,14 +15,6 @@ class UserRepository(BaseRepository[User]):
     def __init__(self) -> None:
         super().__init__(User)
 
-    async def get_by_telegram_id(
-        self,
-        session: AsyncSession,
-        telegram_id: int,
-    ) -> User | None:
-        """Возвращает пользователя по Telegram ID или None."""
-        return await self.find_by_field(session, "telegram_id", telegram_id)
-
     async def upsert_from_telegram(
         self,
         session: AsyncSession,
@@ -37,7 +28,7 @@ class UserRepository(BaseRepository[User]):
 
         ***telegram_id: уникальный идентификатор из Telegram***
         """
-        user = await self.get_by_telegram_id(session, telegram_id)
+        user = await self.find_by_field(session, "telegram_id", telegram_id)
         if user is None:
             return await self.create(
                 session,
@@ -57,12 +48,3 @@ class UserRepository(BaseRepository[User]):
 
 
 user_repository = UserRepository()
-
-
-class UserRepoProvider(Provider):
-    scope = Scope.REQUEST
-
-    @provide
-    def user_repository(self) -> UserRepository:
-        return user_repository
-

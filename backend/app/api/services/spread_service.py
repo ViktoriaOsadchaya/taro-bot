@@ -1,5 +1,4 @@
 from dishka import Provider, Scope, provide
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.schemas.spread_dto import SpreadTypeReadDTO
 from app.domain.spread_config import SPREAD_DEFINITIONS
@@ -16,13 +15,7 @@ class SpreadService:
     async def list_spread_types(self) -> list[SpreadTypeReadDTO]:
         """Возвращает все доступные типы раскладов с описаниями."""
         return [
-            SpreadTypeReadDTO(
-                spread_type=definition.spread_type,
-                cards_count=definition.cards_count,
-                requires_question=definition.requires_question,
-                title_ru=definition.title_ru,
-                description_ru=definition.description_ru,
-            )
+            SpreadTypeReadDTO.model_validate(definition, from_attributes=True)
             for definition in SPREAD_DEFINITIONS.values()
         ]
 

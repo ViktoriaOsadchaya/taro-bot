@@ -72,16 +72,11 @@ class ReadingSessionService:
 
     async def get_current_session(self, telegram_id: int) -> ReadingSessionDTO:
         """Возвращает активную сессию или 404."""
-        session = await self.session_store.get(telegram_id)
-        if session is None:
-            raise NotFoundException("Активный расклад не найден")
-        return session
+        return await self._require_session(telegram_id)
 
     async def cancel_session(self, telegram_id: int) -> None:
         """Отменяет текущий расклад (/cancel или «Назад»)."""
-        session = await self.session_store.get(telegram_id)
-        if session is None:
-            raise NotFoundException("Активный расклад не найден")
+        await self._require_session(telegram_id)
         await self.session_store.delete(telegram_id)
 
     async def draw_card(self, telegram_id: int) -> DrawCardResultDTO:
@@ -90,9 +85,7 @@ class ReadingSessionService:
 
         После успешного сохранения Redis-сессия удаляется.
         """
-        session = await self.session_store.get(telegram_id)
-        if session is None:
-            raise NotFoundException("Активный расклад не найден")
+        session = await self._require_session(telegram_id)
 
         if len(session.drawn_cards) >= session.required_cards:
             raise ConflictException("Все карты уже вытянуты")
@@ -134,6 +127,13 @@ class ReadingSessionService:
             is_complete=True,
             reading=reading_detail,
         )
+
+    async def _require_session(self, telegram_id: int) -> ReadingSessionDTO:
+        """Возвращает активную Redis-сессию или 404."""
+        session = await self.session_store.get(telegram_id)
+        if session is None:
+            raise NotFoundException("Активный расклад не найден")
+        return session
 
     async def _finalize_reading(
         self,
