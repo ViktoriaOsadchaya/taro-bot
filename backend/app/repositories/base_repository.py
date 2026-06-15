@@ -64,7 +64,7 @@ class BaseRepository(Generic[T]):
         Returns:
             Объект модели или None
         """
-        stmt = select(self.model).where(self.model.id == primary_key)
+        stmt = select(self.model).where(self.model.primary_key == primary_key)
 
         if relations:
             for relation in relations:
@@ -94,7 +94,7 @@ class BaseRepository(Generic[T]):
         await session.flush()
         await session.refresh(obj)
         logger.info(
-            f"Successfully created {self.model.__name__} with id: {obj.id}"
+            f"Successfully created {self.model.__name__} with primary_key: {obj.primary_key}"
         )
         return obj
 
@@ -163,7 +163,7 @@ class BaseRepository(Generic[T]):
         Returns:
             Количество удаленных объектов
         """
-        stmt = delete(self.model).where(self.model.id.in_(primary_keys))
+        stmt = delete(self.model).where(self.model.primary_key.in_(primary_keys))
         result = await session.execute(stmt)
         return result.rowcount
 
