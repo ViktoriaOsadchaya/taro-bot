@@ -8,8 +8,6 @@ from app.api.schemas.user_dto import UserReadDTO, UserUpsertDTO
 from app.api.services.user_service import UserService
 
 router = APIRouter(
-    prefix="/users",
-    tags=["users"],
     route_class=DishkaRoute,
     dependencies=[VERIFY_INTERNAL_TOKEN],
 )

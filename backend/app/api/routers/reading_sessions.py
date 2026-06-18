@@ -15,14 +15,12 @@ from app.api.schemas.reading_session_dto import (
 from app.api.services.reading_session_service import ReadingSessionService
 
 router = APIRouter(
-    prefix="/readings/sessions",
-    tags=["reading-sessions"],
     route_class=DishkaRoute,
     dependencies=[VERIFY_INTERNAL_TOKEN],
 )
 
 
-@router.post("", response_model=ReadingSessionDTO)
+@router.post("/", response_model=ReadingSessionDTO)
 async def create_reading_session(
     body: StartSessionDTO,
     telegram_id: Annotated[int, TELEGRAM_ID],

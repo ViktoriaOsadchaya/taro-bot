@@ -8,8 +8,6 @@ from app.api.schemas.spread_dto import SpreadTypeReadDTO
 from app.api.services.spread_service import SpreadService
 
 router = APIRouter(
-    prefix="/spreads",
-    tags=["spreads"],
     route_class=DishkaRoute,
     dependencies=[VERIFY_INTERNAL_TOKEN],
 )

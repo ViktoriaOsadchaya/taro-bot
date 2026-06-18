@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
-router = APIRouter(tags=["system"])
+router = APIRouter()
 
 
 @router.get("/", response_class=HTMLResponse, include_in_schema=False)

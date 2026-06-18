@@ -10,14 +10,12 @@ from app.api.schemas.tarot_card_dto import TarotCardReadDTO
 from app.api.services.tarot_card_service import TarotCardService
 
 router = APIRouter(
-    prefix="/cards",
-    tags=["cards"],
     route_class=DishkaRoute,
     dependencies=[VERIFY_INTERNAL_TOKEN],
 )
 
 
-@router.get("", response_model=list[TarotCardReadDTO])
+@router.get("/", response_model=list[TarotCardReadDTO])
 async def list_cards(
     service: FromDishka[TarotCardService],
     skip: Annotated[int, Query(ge=0)] = 0,

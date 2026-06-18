@@ -5,7 +5,8 @@ from contextlib import asynccontextmanager
 from dishka.integrations.fastapi import setup_dishka
 from fastapi import FastAPI
 
-from app.api.router import router
+from app.api.api_router import api_router
+from app.api.routers import health, index
 from app.core.container import container
 from app.core.exception_handlers import register_exception_handlers
 from app.core.redis_helper import redis_helper
@@ -27,7 +28,9 @@ def create_app() -> FastAPI:
     )
     register_exception_handlers(app)
     setup_dishka(container, app)
-    app.include_router(router)
+    app.include_router(index.router, tags=["system"])
+    app.include_router(health.router, prefix="/health", tags=["system"])
+    app.include_router(api_router, prefix="/api/v1", tags=["api"])
     return app
 
 

@@ -11,14 +11,12 @@ from app.api.services.reading_service import ReadingService
 from app.api.services.user_service import UserService
 
 router = APIRouter(
-    prefix="/readings",
-    tags=["readings"],
     route_class=DishkaRoute,
     dependencies=[VERIFY_INTERNAL_TOKEN],
 )
 
 
-@router.get("", response_model=ReadingHistoryDTO)
+@router.get("/", response_model=ReadingHistoryDTO)
 async def list_readings(
     telegram_id: Annotated[int, TELEGRAM_ID],
     user_service: FromDishka[UserService],
