@@ -26,10 +26,14 @@ class ReadingStatus(StrEnum):
     """
     Статус сохранённого расклада в PostgreSQL.
 
+    PENDING — расклад создан, ожидает начала генерации.
+    GENERATING — LLM генерирует толкование, interpretation пока пустой.
     COMPLETED — толкование получено и сохранено.
-    FAILED — ошибка LLM или финализации; в /history не показываем.
+    FAILED — ошибка LLM или финализации.
     """
 
+    PENDING = "pending"
+    GENERATING = "generating"
     COMPLETED = "completed"
     FAILED = "failed"
 

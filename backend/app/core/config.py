@@ -25,7 +25,7 @@ class Setting(BaseSettings):
     INSTANCE_ID: str = os.getenv("INSTANCE_ID", "default")
     SECRET_KEY: str = os.getenv("SECRET_KEY", "")
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
-    
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
     # Режим запуска: "dev" (по умолчанию, polling) или "prod" (webhook)
     BOT_ENV: str = os.getenv("BOT_ENV", "dev").lower()
     
