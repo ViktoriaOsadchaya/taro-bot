@@ -140,26 +140,28 @@ class ReadingSessionService:
         user: UserReadDTO,
         session: ReadingSessionDTO,
     ) -> ReadingDetailDTO:
-        """Вызывает LLM и сохраняет расклад; при ошибке LLM — status=failed."""
+        """Сохраняет расклад как generating, вызывает LLM и обновляет статус."""
+        reading_detail = await self.reading_service.save_generating(
+            user_id=user.primary_key,
+            spread_type=session.spread_type,
+            question=session.question,
+            drawn_cards=session.drawn_cards,
+        )
         try:
             interpretation = await self.interpretation_service.generate(
                 spread_type=session.spread_type,
                 question=session.question,
                 drawn_cards=session.drawn_cards,
             )
-            return await self.reading_service.save_completed(
+            return await self.reading_service.complete_reading(
                 user_id=user.primary_key,
-                spread_type=session.spread_type,
-                question=session.question,
-                drawn_cards=session.drawn_cards,
+                reading_id=reading_detail.primary_key,
                 interpretation=interpretation,
             )
         except ExternalServiceException:
-            await self.reading_service.save_failed(
+            await self.reading_service.mark_failed(
                 user_id=user.primary_key,
-                spread_type=session.spread_type,
-                question=session.question,
-                drawn_cards=session.drawn_cards,
+                reading_id=reading_detail.primary_key,
             )
             raise
 
