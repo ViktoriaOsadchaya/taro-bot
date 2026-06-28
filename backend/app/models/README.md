@@ -48,11 +48,12 @@ User 1 ──< Reading 1 ──< ReadingCard >── 1 TarotCard
 
 - `app/domain/spread_config.py` — правила количества карт и position_key
 - `app/repositories/` — доступ к таблицам
+- `alembic/` — миграции схемы БД
 
 ## TODO
 
-- [ ] Alembic: первая миграция + seed 78 карт
-- [ ] `alembic/env.py` — импорт `app.models`
+- [x] Alembic: первая миграция схемы (`alembic/versions/e5b6d493b126_initial_schema.py`)
+- [ ] Seed-миграция: 78 карт Таро в `tarot_cards`
 
 ## История обновлений
 

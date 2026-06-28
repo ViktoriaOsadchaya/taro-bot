@@ -3,10 +3,11 @@
 from fastapi import APIRouter
 
 from app.api.deps.auth_deps import CURRENT_USER
-from app.api.routers import auth, cards, reading_sessions, readings, spreads, users
+from app.api.routers import auth, bot_internal, cards, reading_sessions, readings, spreads, users
 
 api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
+api_router.include_router(bot_internal.router)
 
 protected_router = APIRouter(dependencies=[CURRENT_USER])
 protected_router.include_router(spreads.router, prefix="/spreads", tags=["spreads"])

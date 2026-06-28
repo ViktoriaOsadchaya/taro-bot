@@ -18,6 +18,7 @@ aiogram = ">=3.15.0"
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.0.0"
 pytest-asyncio = ">=0.24.0"
+alembic = ">=1.14.0"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

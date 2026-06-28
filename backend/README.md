@@ -40,8 +40,25 @@ Router → Service → Repository → Database
 
 В каждой папке слоя есть `README_RULES.md` с обязательными стандартами (Dishka, docstring, без SQL в сервисах).
 
+## Миграции БД (Alembic)
+
+```bash
+# из backend/, после docker compose up -d
+source .venv/bin/activate
+alembic upgrade head          # применить миграции
+alembic revision --autogenerate -m "описание"  # новая миграция после изменения models/
+alembic downgrade -1          # откат последней миграции
+```
+
+URL берётся из `.env` (`DATABASE_URL`) через `alembic/env.py`.
+
+Удобная обёртка: `python scripts/init_db.py` (= `alembic upgrade head`).
+
+Если таблицы уже созданы вручную (старый `create_all`), один раз:
+`alembic stamp head` — пометить БД как актуальную без повторного создания таблиц.
+
 ## История обновлений
 
 | Дата | Изменение |
 |------|-----------|
-| 2025-06-09 | Сервисный слой (6 сервисов), schemas, infrastructure, redis_helper |
+| 2026-06-28 | Alembic: первая миграция `initial schema` (users, tarot_cards, readings, reading_cards) |

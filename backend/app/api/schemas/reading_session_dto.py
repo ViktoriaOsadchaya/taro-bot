@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from app.api.schemas.reading_dto import ReadingDetailDTO
 from app.models.enums import CardPositionKey, SpreadType
@@ -14,6 +14,22 @@ class DrawnCardSessionDTO(BaseModel):
     code: str
     name_ru: str
     image_path: str
+
+    @model_validator(mode="before")
+    @classmethod
+    def from_reading_card_orm(cls, data: object) -> object:
+        if hasattr(data, "tarot_card_id") and hasattr(data, "tarot_card"):
+            tarot = data.tarot_card
+            return {
+                "tarot_card_id": data.tarot_card_id,
+                "position_index": data.position_index,
+                "position_key": data.position_key,
+                "is_reversed": data.is_reversed,
+                "code": tarot.code,
+                "name_ru": tarot.name_ru,
+                "image_path": tarot.image_path,
+            }
+        return data
 
 
 class ReadingSessionDTO(BaseModel):

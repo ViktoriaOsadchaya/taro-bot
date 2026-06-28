@@ -4,7 +4,6 @@ from dishka import Provider, Scope, provide
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.schemas.reading_dto import (
-    ReadingCardReadDTO,
     ReadingDetailDTO,
     ReadingHistoryDTO,
     ReadingHistoryItemDTO,
@@ -13,7 +12,6 @@ from app.api.schemas.reading_session_dto import DrawnCardSessionDTO
 from app.api.services.interpretation_service import InterpretationService
 from app.core.config import settings
 from app.core.exceptions import ConflictException, ExternalServiceException, NotFoundException
-from app.domain.spread_config import POSITION_LABELS_RU
 from app.models.enums import ReadingStatus, SpreadType
 from app.repositories.reading_repository import ReadingRepository
 
@@ -25,8 +23,6 @@ class ReadingService:
     Обслуживает /history и детальный просмотр расклада.
     Вызывается ReadingSessionService после успешного ответа LLM.
     """
-
-    INTERPRETATION_PREVIEW_LENGTH = 120
 
     def __init__(
         self,
@@ -54,13 +50,15 @@ class ReadingService:
             filters={"user_id": user_id, "status": ReadingStatus.COMPLETED},
             relations=["cards"],
         )
-        items = [self._to_history_item(reading) for reading in readings]
-        return ReadingHistoryDTO(items=items, total=total, skip=skip, limit=limit)
+        items = [ReadingHistoryItemDTO.model_validate(reading) for reading in readings]
+        return ReadingHistoryDTO.model_validate(
+            {"items": items, "total": total, "skip": skip, "limit": limit}
+        )
 
     async def get_detail(self, user_id: int, reading_id: int) -> ReadingDetailDTO:
         """Возвращает полный расклад, если он принадлежит пользователю."""
         reading = await self._get_reading_for_user(user_id, reading_id)
-        return self._to_detail(reading)
+        return ReadingDetailDTO.model_validate(reading)
 
     async def save_generating(
         self,
@@ -87,7 +85,7 @@ class ReadingService:
             },
             cards_kwargs=self._cards_kwargs(drawn_cards),
         )
-        return self._to_detail(reading)
+        return ReadingDetailDTO.model_validate(reading)
 
     async def complete_reading(
         self,
@@ -108,7 +106,7 @@ class ReadingService:
         if updated is None:
             raise NotFoundException("Расклад не найден")
         reading = await self._get_reading_for_user(user_id, reading_id)
-        return self._to_detail(reading)
+        return ReadingDetailDTO.model_validate(reading)
 
     async def mark_failed(self, user_id: int, reading_id: int) -> None:
         """Помечает существующий расклад как failed."""
@@ -147,7 +145,7 @@ class ReadingService:
             },
             cards_kwargs=self._cards_kwargs(drawn_cards),
         )
-        return self._to_detail(reading)
+        return ReadingDetailDTO.model_validate(reading)
 
     async def save_failed(
         self,
@@ -221,67 +219,7 @@ class ReadingService:
 
     def _cards_to_session_dto(self, reading) -> list[DrawnCardSessionDTO]:
         """Преобразует сохранённые карты расклада в DTO для LLM."""
-        drawn_cards: list[DrawnCardSessionDTO] = []
-        for rc in reading.cards:
-            tarot = rc.tarot_card
-            drawn_cards.append(
-                DrawnCardSessionDTO(
-                    tarot_card_id=rc.tarot_card_id,
-                    position_index=rc.position_index,
-                    position_key=rc.position_key,
-                    is_reversed=rc.is_reversed,
-                    code=tarot.code,
-                    name_ru=tarot.name_ru,
-                    image_path=tarot.image_path,
-                )
-            )
-        return drawn_cards
-
-    def _to_history_item(self, reading) -> ReadingHistoryItemDTO:
-        """Преобразует ORM Reading в краткую запись истории."""
-        preview = reading.interpretation or ""
-        if len(preview) > self.INTERPRETATION_PREVIEW_LENGTH:
-            preview = preview[: self.INTERPRETATION_PREVIEW_LENGTH].rstrip() + "…"
-        return ReadingHistoryItemDTO(
-            primary_key=reading.primary_key,
-            spread_type=reading.spread_type,
-            question=reading.question,
-            interpretation_preview=preview,
-            created_at=reading.created_at,
-            cards_count=len(reading.cards),
-        )
-
-    def _to_detail(self, reading) -> ReadingDetailDTO:
-        """Преобразует ORM Reading с cards в полный DTO."""
-        cards = []
-        for rc in reading.cards:
-            tarot = rc.tarot_card
-            cards.append(
-                ReadingCardReadDTO(
-                    tarot_card_id=rc.tarot_card_id,
-                    code=tarot.code,
-                    name_ru=tarot.name_ru,
-                    image_path=tarot.image_path,
-                    position_index=rc.position_index,
-                    position_key=rc.position_key,
-                    position_label_ru=POSITION_LABELS_RU.get(
-                        rc.position_key,
-                        rc.position_key.value,
-                    ),
-                    is_reversed=rc.is_reversed,
-                )
-            )
-        return ReadingDetailDTO(
-            primary_key=reading.primary_key,
-            spread_type=reading.spread_type,
-            question=reading.question,
-            interpretation=reading.interpretation,
-            status=reading.status,
-            llm_model=reading.llm_model,
-            completed_at=reading.completed_at,
-            created_at=reading.created_at,
-            cards=cards,
-        )
+        return [DrawnCardSessionDTO.model_validate(rc) for rc in reading.cards]
 
 
 class ReadingServiceProvider(Provider):
