@@ -3,11 +3,11 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Index, Text
+from sqlalchemy import DateTime, ForeignKey, Index, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.base import Base
-from app.models.enums import ReadingStatus, SpreadType
+from app.models.enums import ReadingStatus, SpreadType, str_enum
 
 if TYPE_CHECKING:
     from app.models.reading_card import ReadingCard
@@ -32,17 +32,11 @@ class Reading(Base):
         nullable=False,
         index=True,
     )
-    spread_type: Mapped[SpreadType] = mapped_column(
-        Enum(SpreadType, native_enum=False),
-        nullable=False,
-    )
+    spread_type: Mapped[SpreadType] = mapped_column(str_enum(SpreadType), nullable=False)
     # Заполняется только для SpreadType.FREE_QUESTION.
     question: Mapped[str | None] = mapped_column(Text, nullable=True)
     interpretation: Mapped[str | None] = mapped_column(Text, nullable=True)
-    status: Mapped[ReadingStatus] = mapped_column(
-        Enum(ReadingStatus, native_enum=False),
-        nullable=False,
-    )
+    status: Mapped[ReadingStatus] = mapped_column(str_enum(ReadingStatus), nullable=False)
     llm_model: Mapped[str | None] = mapped_column(Text, nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 

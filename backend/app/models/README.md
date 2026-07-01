@@ -53,7 +53,7 @@ User 1 ──< Reading 1 ──< ReadingCard >── 1 TarotCard
 ## TODO
 
 - [x] Alembic: первая миграция схемы (`alembic/versions/e5b6d493b126_initial_schema.py`)
-- [ ] Seed-миграция: 78 карт Таро в `tarot_cards`
+- [x] Seed-миграция: 78 карт Таро в `tarot_cards` (`a8f3c2d91e04`)
 
 ## История обновлений
 

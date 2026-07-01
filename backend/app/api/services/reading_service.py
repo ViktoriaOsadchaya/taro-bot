@@ -197,9 +197,10 @@ class ReadingService:
 
     async def _get_reading_for_user(self, user_id: int, reading_id: int):
         """Возвращает ORM Reading пользователя или 404."""
-        reading = await self.reading_repo.find_by_conditions(
+        reading = await self.reading_repo.find_for_user_with_cards(
             self.session,
-            {"primary_key": reading_id, "user_id": user_id},
+            user_id,
+            reading_id,
         )
         if reading is None:
             raise NotFoundException("Расклад не найден")

@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, Enum, ForeignKey, SmallInteger, UniqueConstraint
+from sqlalchemy import Boolean, ForeignKey, SmallInteger, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.base import Base
-from app.models.enums import CardPositionKey
+from app.models.enums import CardPositionKey, str_enum
 
 if TYPE_CHECKING:
     from app.models.reading import Reading
@@ -37,10 +37,7 @@ class ReadingCard(Base):
         index=True,
     )
     position_index: Mapped[int] = mapped_column(SmallInteger, nullable=False)
-    position_key: Mapped[CardPositionKey] = mapped_column(
-        Enum(CardPositionKey, native_enum=False),
-        nullable=False,
-    )
+    position_key: Mapped[CardPositionKey] = mapped_column(str_enum(CardPositionKey), nullable=False)
     is_reversed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
 
     reading: Mapped[Reading] = relationship("Reading", back_populates="cards", lazy="selectin")

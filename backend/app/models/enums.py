@@ -7,6 +7,17 @@
 
 from enum import StrEnum
 
+from sqlalchemy import Enum
+
+
+def str_enum(enum_cls: type[StrEnum]) -> Enum:
+    """SQLAlchemy Enum для StrEnum: в БД хранятся .value (card_of_day), не имена (CARD_OF_DAY)."""
+    return Enum(
+        enum_cls,
+        values_callable=lambda members: [member.value for member in members],
+        native_enum=False,
+    )
+
 
 class SpreadType(StrEnum):
     """

@@ -57,6 +57,41 @@ URL берётся из `.env` (`DATABASE_URL`) через `alembic/env.py`.
 Если таблицы уже созданы вручную (старый `create_all`), один раз:
 `alembic stamp head` — пометить БД как актуальную без повторного создания таблиц.
 
+## Интеграция Mini App (фронтенд)
+
+**Base URL API:** `VITE_API_URL` = ngrok на порт **8000** (не URL фронта).
+
+### Порядок запросов (карта дня)
+
+```
+1. POST {API}/api/v1/auth/telegram
+   body: { "init_data": "<Telegram.WebApp.initData>" }
+   → { "access_token": "...", "user": {...} }
+
+2. POST {API}/api/v1/readings/sessions/
+   header: Authorization: Bearer <access_token>
+   body: { "spread_type": "card_of_day" }
+
+3. POST {API}/api/v1/readings/sessions/draw
+   header: Authorization: Bearer <access_token>
+   → карта; при последней карте — interpretation в reading
+```
+
+### Типы раскладов (`spread_type`)
+
+| UI | `spread_type` |
+|----|----------------|
+| Карта дня | `card_of_day` |
+| Прошлое · настоящее · будущее | `past_present_future` |
+| Свой вопрос | `free_question` (+ поле `question`) |
+
+### Чего нет в API
+
+Эндпоинты вроде `/spreads/daily` **не существуют** — будет 404.
+Полный список: Swagger `http://127.0.0.1:8000/docs` или `app/api/README.md`.
+
+CORS на бэкенде разрешает запросы с `*.ngrok-free.dev` и localhost.
+
 ## История обновлений
 
 | Дата | Изменение |
